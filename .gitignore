@@ -1,0 +1,20 @@
+# Entorno virtual
+.venv/
+venv/
+env/
+
+# Credenciales y tokens — NUNCA subir
+.env
+.cache*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# CSVs de datos locales
+*.csv
+
+# IDEs
+.vscode/
+.idea/
