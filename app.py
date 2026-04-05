@@ -65,11 +65,9 @@ def get_spotify():
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "logged": is_logged_in()
-        }
+        request=request,
+        name="index.html",
+        context={"logged": is_logged_in()}
     )
 
 
