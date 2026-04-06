@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import date
 
 from recommender.auth import get_spotify_client
-from recommender.config import SCOPES_PLAYLIST, CACHE_PLAYLIST
+from recommender.config import SCOPES_PLAYLIST, CACHE_CLI
 
 # =========================
 # Playlist
@@ -43,7 +43,7 @@ def main():
     if not track_ids:
         raise SystemExit("❌ No hay track_ids en el CSV")
 
-    sp = get_spotify_client(scopes=SCOPES_PLAYLIST, cache_path=CACHE_PLAYLIST)
+    sp = get_spotify_client(scopes=SCOPES_PLAYLIST, cache_path=CACHE_CLI)
     me = sp.me()
     user_id = me["id"]
 

@@ -26,10 +26,12 @@ SCOPES_PLAYLIST = ["playlist-modify-public", "playlist-modify-private"]
 SCOPES_WEB      = SCOPES_TOP_READ + SCOPES_PLAYLIST
 
 # --- Cachés OAuth ---
-CACHE_WEB      = ".cache-web"
-CACHE_PLAYLIST = ".cache-playlist"
-CACHE_FEATURES = ".cache-features"
-CACHE_READ     = ".cache-read"
+# Directorio único; se crea automáticamente si no existe
+_CACHE_DIR = Path(__file__).parent.parent / ".cache-spotify"
+_CACHE_DIR.mkdir(exist_ok=True)
+
+CACHE_WEB = str(_CACHE_DIR / "web")   # app FastAPI
+CACHE_CLI = str(_CACHE_DIR / "cli")   # scripts de línea de comandos
 
 # --- Constantes de proyecto ---
 PROJECT_NAME         = "Python Spotify Recommender by Marta"

@@ -4,13 +4,13 @@ import pandas as pd
 import spotipy
 
 from recommender.auth import get_spotify_client
-from recommender.config import SCOPES_TOP_READ, CACHE_READ
+from recommender.config import SCOPES_TOP_READ, CACHE_CLI
 
 CSV_IN = "top_tracks_features.csv"
 ID_RE  = re.compile(r"^[0-9A-Za-z]{22}$")  # IDs base62 de 22 chars
 
 def load_spotify():
-    return get_spotify_client(scopes=SCOPES_TOP_READ, cache_path=CACHE_READ)
+    return get_spotify_client(scopes=SCOPES_TOP_READ, cache_path=CACHE_CLI)
 
 def clean_id(kind: str, raw):
     if raw is None: return None
@@ -89,7 +89,7 @@ def main():
     except spotipy.SpotifyException as e:
         # Si fuera un 401, reautenticamos borrando solo la caché de lectura
         if getattr(e, "http_status", None) == 401:
-            Path(CACHE_READ).unlink(missing_ok=True)
+            Path(CACHE_CLI).unlink(missing_ok=True)
             sp = load_spotify()
             recs = sp.recommendations(**rec_kwargs)["tracks"]
         else:

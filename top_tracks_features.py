@@ -6,7 +6,7 @@ import spotipy
 from requests.exceptions import HTTPError
 
 from recommender.auth import get_spotify_client
-from recommender.config import SCOPES_TOP_READ, CACHE_FEATURES
+from recommender.config import SCOPES_TOP_READ, CACHE_CLI
 
 # -------- Config --------
 FEATURE_KEYS = [
@@ -100,7 +100,7 @@ def main():
     parser.add_argument("--out", default="top_tracks_features.csv", help="CSV de salida")
     args = parser.parse_args()
 
-    sp = get_spotify_client(scopes=SCOPES_TOP_READ, cache_path=CACHE_FEATURES)
+    sp = get_spotify_client(scopes=SCOPES_TOP_READ, cache_path=CACHE_CLI)
 
     print("▶︎ Descargando Top Tracks…")
     top = fetch_top_tracks(sp, time_range=args.time_range, limit=args.limit)
