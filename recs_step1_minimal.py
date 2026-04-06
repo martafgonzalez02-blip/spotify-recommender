@@ -1,26 +1,16 @@
 from pathlib import Path
-import os, re, sys
+import re, sys
 import pandas as pd
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
-from dotenv import load_dotenv
+
+from recommender.auth import get_spotify_client
+from recommender.config import SCOPES_TOP_READ, CACHE_READ
 
 CSV_IN = "top_tracks_features.csv"
 ID_RE  = re.compile(r"^[0-9A-Za-z]{22}$")  # IDs base62 de 22 chars
 
 def load_spotify():
-    load_dotenv(dotenv_path=Path(__file__).parent / ".env")
-    cid = os.getenv("SPOTIPY_CLIENT_ID"); sec = os.getenv("SPOTIPY_CLIENT_SECRET"); red = os.getenv("SPOTIPY_REDIRECT_URI")
-    if not all([cid, sec, red]):
-        print("❌ Falta SPOTIPY_* en .env")
-        sys.exit(1)
-    auth = SpotifyOAuth(client_id=cid, client_secret=sec, redirect_uri=red,
-                        scope="user-top-read", cache_path=".cache-read", open_browser=True)
-    tok = auth.get_cached_token() or auth.get_access_token(as_dict=True)
-    if not tok or "access_token" not in tok:
-        print("❌ No token OAuth.")
-        sys.exit(1)
-    return spotipy.Spotify(auth_manager=auth)
+    return get_spotify_client(scopes=SCOPES_TOP_READ, cache_path=CACHE_READ)
 
 def clean_id(kind: str, raw):
     if raw is None: return None
@@ -99,8 +89,7 @@ def main():
     except spotipy.SpotifyException as e:
         # Si fuera un 401, reautenticamos borrando solo la caché de lectura
         if getattr(e, "http_status", None) == 401:
-            from pathlib import Path
-            Path(".cache-read").unlink(missing_ok=True)
+            Path(CACHE_READ).unlink(missing_ok=True)
             sp = load_spotify()
             recs = sp.recommendations(**rec_kwargs)["tracks"]
         else:

@@ -1,13 +1,12 @@
 # top_tracks_features.py
-from pathlib import Path
-import os
 import time
 from typing import List, Dict
 import pandas as pd
-from dotenv import load_dotenv
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
 from requests.exceptions import HTTPError
+
+from recommender.auth import get_spotify_client
+from recommender.config import SCOPES_TOP_READ, CACHE_FEATURES
 
 # -------- Config --------
 FEATURE_KEYS = [
@@ -16,34 +15,11 @@ FEATURE_KEYS = [
 ]
 DEFAULT_TIME_RANGE = "medium_term"  # short_term | medium_term | long_term
 TOP_LIMIT = 50
-CACHE_PATH = ".cache-features"      # cache propio para este script
 
 # -------- Utils --------
 def chunks(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
-
-def get_spotify_client(scopes: List[str]) -> spotipy.Spotify:
-    """Auth explícita desde .env y cache propio."""
-    load_dotenv(dotenv_path=Path(__file__).parent / ".env")
-    cid   = os.getenv("SPOTIPY_CLIENT_ID")
-    sec   = os.getenv("SPOTIPY_CLIENT_SECRET")
-    redir = os.getenv("SPOTIPY_REDIRECT_URI")
-    missing = [k for k, v in {
-        "SPOTIPY_CLIENT_ID": cid, "SPOTIPY_CLIENT_SECRET": sec, "SPOTIPY_REDIRECT_URI": redir
-    }.items() if not v]
-    if missing:
-        raise SystemExit(f"❌ Faltan variables en .env: {', '.join(missing)}")
-
-    auth = SpotifyOAuth(
-        client_id=cid,
-        client_secret=sec,
-        redirect_uri=redir,
-        scope=" ".join(scopes),
-        cache_path=CACHE_PATH,
-        open_browser=True
-    )
-    return spotipy.Spotify(auth_manager=auth)
 
 # -------- Fetchers --------
 def fetch_top_tracks(sp: spotipy.Spotify, time_range=DEFAULT_TIME_RANGE, limit=TOP_LIMIT):
@@ -124,7 +100,7 @@ def main():
     parser.add_argument("--out", default="top_tracks_features.csv", help="CSV de salida")
     args = parser.parse_args()
 
-    sp = get_spotify_client(scopes=["user-top-read"])
+    sp = get_spotify_client(scopes=SCOPES_TOP_READ, cache_path=CACHE_FEATURES)
 
     print("▶︎ Descargando Top Tracks…")
     top = fetch_top_tracks(sp, time_range=args.time_range, limit=args.limit)
