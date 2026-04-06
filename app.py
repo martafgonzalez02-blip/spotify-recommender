@@ -8,18 +8,7 @@ import pandas as pd
 from recommender.auth import get_spotify_client
 from recommender.recommendations import generate_recommendations
 from recommender.playlist import create_playlist_from_tracks
-
-# =========================
-# Configuración global
-# =========================
-
-SPOTIFY_SCOPES = [
-    "user-top-read",
-    "playlist-modify-public",
-    "playlist-modify-private",
-]
-
-CACHE_WEB = ".cache-web"
+from recommender.config import SCOPES_WEB, CACHE_WEB
 
 # =========================
 # App
@@ -42,10 +31,7 @@ templates = Jinja2Templates(directory="templates")
 
 def is_logged_in():
     try:
-        sp = get_spotify_client(
-            scopes=SPOTIFY_SCOPES,
-            cache_path=CACHE_WEB
-        )
+        sp = get_spotify_client(scopes=SCOPES_WEB, cache_path=CACHE_WEB)
         sp.me()
         return True
     except:
@@ -53,10 +39,7 @@ def is_logged_in():
 
 
 def get_spotify():
-    return get_spotify_client(
-        scopes=SPOTIFY_SCOPES,
-        cache_path=CACHE_WEB
-    )
+    return get_spotify_client(scopes=SCOPES_WEB, cache_path=CACHE_WEB)
 
 # =========================
 # Routes

@@ -1,25 +1,16 @@
 # recommender/auth.py
-import os
-from pathlib import Path
-from dotenv import load_dotenv
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
+from .config import SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, SPOTIPY_REDIRECT_URI, CACHE_WEB
 
-def get_spotify_client(
-    scopes,
-    cache_path=".cache-web"
-) -> spotipy.Spotify:
-
-    load_dotenv(dotenv_path=Path(".env"))
-
+def get_spotify_client(scopes, cache_path=CACHE_WEB) -> spotipy.Spotify:
     auth_manager = SpotifyOAuth(
-        client_id=os.getenv("SPOTIPY_CLIENT_ID"),
-        client_secret=os.getenv("SPOTIPY_CLIENT_SECRET"),
-        redirect_uri=os.getenv("SPOTIPY_REDIRECT_URI"),
+        client_id=SPOTIPY_CLIENT_ID,
+        client_secret=SPOTIPY_CLIENT_SECRET,
+        redirect_uri=SPOTIPY_REDIRECT_URI,
         scope=" ".join(scopes),
         cache_path=cache_path,
-        open_browser=True,          # ✅ CLAVE
+        open_browser=True,
         show_dialog=True
     )
-
     return spotipy.Spotify(auth_manager=auth_manager)

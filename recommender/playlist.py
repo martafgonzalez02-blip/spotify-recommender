@@ -1,7 +1,6 @@
 # recommender/playlist.py
 from datetime import date
-
-PROJECT_NAME = "Python Spotify Recommender by Marta"
+from .config import PROJECT_NAME, PLAYLIST_DESCRIPTION
 
 def create_playlist_from_tracks(sp, tracks, public=True):
     user_id = sp.me()["id"]
@@ -10,7 +9,7 @@ def create_playlist_from_tracks(sp, tracks, public=True):
         user=user_id,
         name=f"{PROJECT_NAME} · {date.today()}",
         public=public,
-        description="Playlist generada automáticamente a partir de tu historial de escucha por el motor de recomendación de Marta hecho en Python. Incluye canciones nuevas que encajan con tu gusto, evitando artistas y temas que ya conoces, versiones repetidas y remixes"
+        description=PLAYLIST_DESCRIPTION
     )
 
     track_ids = [t["track_id"] for t in tracks if t.get("track_id")]
