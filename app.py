@@ -11,6 +11,7 @@ from recommender.config import SCOPES_WEB, CACHE_WEB
 # =========================
 app = Flask(__name__)
 
+
 # =========================
 # Helpers
 # =========================
@@ -22,8 +23,10 @@ def is_logged_in():
     except:
         return False
 
+
 def get_spotify():
     return get_spotify_client(scopes=SCOPES_WEB, cache_path=CACHE_WEB)
+
 
 # =========================
 # Routes
@@ -32,19 +35,30 @@ def get_spotify():
 def index():
     return render_template("index.html", logged=is_logged_in())
 
+
 @app.route("/login")
 def login():
     sp = get_spotify()
     auth_url = sp.auth_manager.get_authorize_url()
     return redirect(auth_url)
 
+
 @app.route("/callback")
 def callback():
     code = request.args.get("code")
+    error = request.args.get("error")
+
+    if error:
+        return f"Error en autenticación: {error}", 400
+
+    if not code:
+        return "No se recibió código de autorización", 400
+
     print("✅ CALLBACK EJECUTADO")
     sp = get_spotify()
     sp.auth_manager.get_access_token(code)
     return redirect("/")
+
 
 @app.route("/playlist", methods=["POST"])
 def create_playlist():
@@ -110,5 +124,8 @@ def create_playlist():
     })
 
 
+# =========================
+# Local development
+# =========================
 if __name__ == "__main__":
     app.run(debug=True, port=8000)
