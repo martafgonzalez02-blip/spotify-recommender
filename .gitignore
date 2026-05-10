@@ -3,7 +3,7 @@
 venv/
 env/
 
-# Credenciales y tokens — NUNCA subir
+# Credenciales y tokens 
 .env
 .cache*
 
