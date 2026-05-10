@@ -1,8 +1,4 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse, HTMLResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware
-
+from flask import Flask, render_template, redirect, request, jsonify
 import pandas as pd
 
 from recommender.auth import get_spotify_client
@@ -13,22 +9,11 @@ from recommender.config import SCOPES_WEB, CACHE_WEB
 # =========================
 # App
 # =========================
-
-app = FastAPI(title="Python Spotify Recommender")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-templates = Jinja2Templates(directory="templates")
+app = Flask(__name__)
 
 # =========================
 # Helpers
 # =========================
-
 def is_logged_in():
     try:
         sp = get_spotify_client(scopes=SCOPES_WEB, cache_path=CACHE_WEB)
@@ -37,47 +22,40 @@ def is_logged_in():
     except:
         return False
 
-
 def get_spotify():
     return get_spotify_client(scopes=SCOPES_WEB, cache_path=CACHE_WEB)
 
 # =========================
 # Routes
 # =========================
+@app.route("/")
+def index():
+    return render_template("index.html", logged=is_logged_in())
 
-@app.get("/", response_class=HTMLResponse)
-def index(request: Request):
-    return templates.TemplateResponse(
-        request=request,
-        name="index.html",
-        context={"logged": is_logged_in()}
-    )
-
-
-@app.get("/login")
+@app.route("/login")
 def login():
     sp = get_spotify()
     auth_url = sp.auth_manager.get_authorize_url()
-    return RedirectResponse(auth_url)
+    return redirect(auth_url)
 
-
-@app.get("/callback")
-def callback(code: str):
+@app.route("/callback")
+def callback():
+    code = request.args.get("code")
     print("✅ CALLBACK EJECUTADO")
     sp = get_spotify()
     sp.auth_manager.get_access_token(code)
-    return RedirectResponse("/")
+    return redirect("/")
 
-
-@app.post("/playlist")
-def create_playlist(public: bool = True):
+@app.route("/playlist", methods=["POST"])
+def create_playlist():
+    public = request.args.get("public", "true").lower() == "true"
 
     # 🔐 Asegurar login
     try:
         sp = get_spotify()
         sp.me()
     except:
-        return RedirectResponse("/login")
+        return redirect("/login")
 
     # 1️⃣ Top tracks
     top = sp.current_user_top_tracks(
@@ -86,7 +64,7 @@ def create_playlist(public: bool = True):
     )["items"]
 
     if not top:
-        return {"error": "No hay suficiente histórico"}
+        return jsonify({"error": "No hay suficiente histórico"})
 
     artist_ids = [t["artists"][0]["id"] for t in top]
 
@@ -116,7 +94,7 @@ def create_playlist(public: bool = True):
     )
 
     if not recs:
-        return {"error": "No se pudieron generar recomendaciones"}
+        return jsonify({"error": "No se pudieron generar recomendaciones"})
 
     # 4️⃣ Crear playlist
     playlist = create_playlist_from_tracks(
@@ -125,8 +103,12 @@ def create_playlist(public: bool = True):
         public=public
     )
 
-    return {
+    return jsonify({
         "playlist_name": playlist["name"],
         "playlist_url": playlist["external_urls"]["spotify"],
         "tracks": len(recs)
-    }
+    })
+
+
+if __name__ == "__main__":
+    app.run(debug=True, port=8000)
